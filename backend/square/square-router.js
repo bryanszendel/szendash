@@ -17,7 +17,7 @@ router.get('/orders', (req, res) => {
     filter: {
       date_time_filter: {
         created_at: {
-          start_at: '2019-11-01T00:00:00-00:00', 
+          start_at: '2019-01-01T00:00:00-00:00', 
           end_at: '2019-12-31T11:59:00-00:00'}
         },
       },
@@ -27,9 +27,22 @@ router.get('/orders', (req, res) => {
     }
   apiInstance.searchOrders(body)
     .then(data => {
+      // const accumulator = data;
       console.log(data)
       console.log('API called successfully. Returned data: ' + data);
-      res.status(200).json(data)
+      if (data.cursor) {
+        body.cursor = data.cursor;
+        apiInstance.searchOrders(body)
+          .then(newData => {
+            const response = data.orders.concat(newData.orders)
+            console.log('RESPONSE', response)
+            res.status(200).json(response)
+          })
+          .catch(error => {
+            console.error(error)
+            res.status(500).json({message: 'error retrieving the data.'})
+          })
+      } else res.status(200).json(data)
     })
     .catch(error => {
       console.error(error);
